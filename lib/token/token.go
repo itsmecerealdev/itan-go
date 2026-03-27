@@ -115,8 +115,8 @@ func Tokenize(buf string) ([]Token, error) {
 			buffer_index++
 			continue
 		}
-		if (!unicode.IsLetter(c) && !isSymbol(c)) {
-			return nil, errors.New("Invalid character")
+		if (!unicode.IsLetter(c) && !isSymbol(c) && !unicode.IsNumber(c)) {
+			return nil, errors.New("Invalid character: " + string(c) )
 		}
 
 		if isSymbol(c) {
@@ -130,11 +130,20 @@ func Tokenize(buf string) ([]Token, error) {
 			var c = buffer[buffer_index];
 			for (buffer_index < len(buffer)) && !unicode.IsSpace(c) && !isSymbol(c) {
 				// fmt.Printf("%b isSpace, rune: %c\n", unicode.IsSpace(c), c)
-				buffer_index ++;
 				c = buffer[buffer_index]
+				buffer_index ++;
 			}
 			var str = buffer[start_index:buffer_index]
 			return_tokens = append(return_tokens, Token{Identifier, string(str)})
+		}
+		if(unicode.IsNumber(c)) {
+			start_index := buffer_index
+			for (buffer_index < len(buffer)) && !unicode.IsSpace(c) && !isSymbol(c) {
+				c = buffer[buffer_index]
+				buffer_index++;
+			}
+			str := buffer[start_index:buffer_index]
+			return_tokens = append(return_tokens, Token{Number, string(str)})
 		}
 	}
 

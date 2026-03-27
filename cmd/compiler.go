@@ -6,7 +6,8 @@ import(
 )
 
 func main() {
-	var buffer string = "  hello ^"
+	buffer := "  hello ^ 12345678 123456789"
+	// buffer := "hello"
 	tokens, err := token.Tokenize(buffer)
 	if (err != nil) {
 		fmt.Printf("Error: %s\n", err);
