@@ -5,8 +5,10 @@ import (
 	"github.com/itsmecerealdev/itan-go/lib/token"
 )
 
-type Node interface { //This gives us the ability to do []*Node, equivalent to cpp vector<Node*> abstract,
-					  //but we retain the concrete unlike c++
+//This gives us the ability to do []*Node, equivalent to cpp vector<Node*> abstract,
+//but we retain the concrete unlike c++
+
+type Node interface { 
 	isNode()
 }
 
