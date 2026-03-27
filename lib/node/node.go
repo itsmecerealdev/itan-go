@@ -17,14 +17,14 @@ type ProgramNode struct {
 	Scope *ScopeNode
 }
 
-type FuncDeclNode {
+type FuncDeclNode struct {
 	Type TypeStruct
 	name string
 	params []*ParamNode
 	scope *ScopeNode
 }
 
-type ParamNode {
+type ParamNode struct {
 	Type TypeStruct
 	name string
 	value *ExpressionNode
@@ -41,6 +41,12 @@ type Scope struct {
 	Funcs map[string]FuncDeclNode
 }
 
+type OperandNode struct {
+	left *ExpressionNode
+	right *ExpressionNode
+	Type TokenType
+}
+
 type DeclarationNode struct {
 	Type TypeStruct
 	name string
@@ -48,7 +54,8 @@ type DeclarationNode struct {
 }
 
 type AssignmentNode struct {
-	name string expression *ExpressionNode
+	name string 
+	expression *ExpressionNode
 }
 
 type NumberNode struct {
