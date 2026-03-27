@@ -128,10 +128,13 @@ func Tokenize(buf string) ([]Token, error) {
 		if (unicode.IsLetter(c)) {
 			var start_index = buffer_index
 			var c = buffer[buffer_index];
-			for (buffer_index < len(buffer)) && unicode.IsSpace(c) && !isSymbol(c) {
+			for (buffer_index < len(buffer)) && !unicode.IsSpace(c) && !isSymbol(c) {
+				// fmt.Printf("%b isSpace, rune: %c\n", unicode.IsSpace(c), c)
 				buffer_index ++;
+				c = buffer[buffer_index]
 			}
 			var str = buffer[start_index:buffer_index]
+			return_tokens = append(return_tokens, Token{Identifier, string(str)})
 		}
 	}
 
