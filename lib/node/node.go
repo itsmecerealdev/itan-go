@@ -2,6 +2,7 @@ package node
 
 import (
 	"github.com/itsmecerealdev/itan-go/lib/types"
+	"github.com/itsmecerealdev/itan-go/lib/token"
 )
 
 type Node interface { //This gives us the ability to do []*Node, equivalent to cpp vector<Node*> abstract,
@@ -18,14 +19,14 @@ type ProgramNode struct {
 }
 
 type FuncDeclNode struct {
-	Type TypeStruct
+	Type types.TypeStruct
 	name string
 	params []*ParamNode
 	scope *ScopeNode
 }
 
 type ParamNode struct {
-	Type TypeStruct
+	Type types.TypeStruct
 	name string
 	value *ExpressionNode
 }
@@ -44,11 +45,11 @@ type Scope struct {
 type OperandNode struct {
 	left *ExpressionNode
 	right *ExpressionNode
-	Type TokenType
+	Type token.TokenType
 }
 
 type DeclarationNode struct {
-	Type TypeStruct
+	Type types.TypeStruct
 	name string
 	expression *ExpressionNode
 }
