@@ -109,7 +109,7 @@ func Tokenize(buf string) ([]Token, error) {
 	var return_tokens []Token
 	var buffer_index int = 0
 	for buffer_index < len(buffer) {
-		fmt.Println(buffer_index)
+		// fmt.Println(buffer_index)
 		var c = buffer[buffer_index]
 		if unicode.IsSpace(c) {
 			buffer_index++
@@ -148,10 +148,38 @@ func Tokenize(buf string) ([]Token, error) {
 	}
 
 	return_tokens = append(return_tokens, Token{End, "end"})
-	return return_tokens, nil
+	length := resolveMultiSymbol(return_tokens)
+	return return_tokens[0:length], nil
 }
 
 func isSymbol(c rune) bool {
 	var valid_symbols []rune = []rune("()+-*/=;^,{}<>!")
 	return slices.Contains(valid_symbols, c)
 }
+
+var multiSymMap = map[[2]TokenType]TokenType {
+	{Assignment, Assignment} : Equal,
+	{Not, Assignment} : NotEqual,
+	{LessThan, Assignment} : LessEqual,
+	{GreaterThan, Assignment} : GreaterEqual,
+	{Assignment, GreaterThan} : Return,
+}
+
+func resolveMultiSymbol(tokens []Token) int {
+	for i, token := range tokens {
+		if(i < (len(tokens) - 1)) {
+			tt1 := token.Type
+			tt2 := tokens[i + 1].Type
+			newType, haskey := multiSymMap[[2]TokenType{tt1, tt2}]
+			if !haskey {
+				fmt.Printf("Not In multiSymMap table: %i : %i\n", tt1, tt2)
+			} else {
+				tokens[i + 1].Type = newType
+				tokens = slices.Delete(tokens, i, i+1)
+			}
+		}
+	}
+	return len(tokens)
+}
+
+
