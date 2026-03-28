@@ -3,15 +3,18 @@ package parser
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/itsmecerealdev/itan-go/lib/node"
 	"github.com/itsmecerealdev/itan-go/lib/token"
+	"github.com/itsmecerealdev/itan-go/lib/types"
 )
 
 type tokenBuffer struct {
 	tokens []token.Token	
 	tokenIndex int
+	//eventually, there will be an []error field
 }
 
 func (tb *tokenBuffer)getCurrentToken() token.Token {
@@ -19,12 +22,12 @@ func (tb *tokenBuffer)getCurrentToken() token.Token {
 }
 
 //Helper funcs
-func peekAhead(buf *tokenBuffer) (token.TokenType, error) {
+func peekAhead(buf *tokenBuffer) token.TokenType {
 	if buf.tokenIndex + 1 >= len(buf.tokens) {
-		err := errors.New("attempting to peek at an out of bounds index")
-		return -1, err
+		err := errors.New("attempting to peek at an out of bounds index, unrecoverable state")
+		log.Fatal(err)
 	}
-	return buf.tokens[buf.tokenIndex + 1].Type, nil
+	return buf.tokens[buf.tokenIndex + 1].Type
 }
 
 func peek(buf *tokenBuffer) token.TokenType {
@@ -34,7 +37,7 @@ func peek(buf *tokenBuffer) token.TokenType {
 func expect(buf *tokenBuffer, ttype token.TokenType) (token.Token, error) {
 	t := buf.getCurrentToken()
 	if t.Type != ttype {
-		err := fmt.Errorf("expected: %s Got: %s at index -> %d", ttype, t.Type, buf.tokenIndex)
+		err := fmt.Errorf("expected: %s got: %s at index -> %d", ttype, t.Type, buf.tokenIndex)
 		return token.Token{}, err
 	}
 	return consume(buf)
@@ -51,7 +54,6 @@ func consume(buf *tokenBuffer) (token.Token, error) {
 }
 
 func ParseProgram(tokens []token.Token) node.ProgramNode {
-	fmt.Print("Program\n")
 	buf := tokenBuffer{tokens, 0}
 	return node.ProgramNode{
 		Scope : parseScope(&buf),
@@ -59,7 +61,6 @@ func ParseProgram(tokens []token.Token) node.ProgramNode {
 }
 
 func parseScope(buf *tokenBuffer) node.ScopeNode {
-	fmt.Print("Scope\n")
 	n := node.ScopeNode{}
 	//TODO add conditions for parsing func decls and stuff later. current implementation is just arithmetic for now
 	for peek(buf) != token.End {
@@ -69,21 +70,32 @@ func parseScope(buf *tokenBuffer) node.ScopeNode {
 }
 
 func parseStatement(buf *tokenBuffer) node.Node {
-	fmt.Print("Stmt.\n")
 	tt := peek(buf)
-	for tt != token.StatementEnd {
-		if tt == token.Number {
-			return parseExpression(buf)
-		}
-		tt = peek(buf)
+	tn := peekAhead(buf)
+	if tt == token.Identifier && tn == token.Identifier {
+		n := parseDeclaration(buf)
+		expect(buf, token.StatementEnd)
+		return n 
 	}
-	return node.NumberNode{}
+	n := parseExprStatement(buf)
+	expect(buf, token.StatementEnd)
+	return n 
+}
+
+func parseExprStatement(buf *tokenBuffer) node.Node {
+	tt := peek(buf)
+	tn := peekAhead(buf)
+	if tt == token.Identifier && tn == token.Assignment  {
+		assign := parseAssignment(buf)
+		return assign
+	} else {
+		expr := parseExpression(buf)
+		return expr
+	}
 }
 
 func parseExpression(buf *tokenBuffer) node.Node {
-	fmt.Print("Expr.\n")
 	left := parseTerm(buf)	
-	fmt.Printf("%s\n", left)
 	next := peek(buf)	
 	for next == token.Plus || next == token.Minus {
 		oper, _ := consume(buf)	
@@ -96,12 +108,10 @@ func parseExpression(buf *tokenBuffer) node.Node {
 		next = peek(buf)
 		left = temp
 	}
-	fmt.Printf("%s\n", left)
 	return left
 }
 
 func parseTerm(buf *tokenBuffer) node.Node {
-	fmt.Print("Term\n")
 	left := parseExponent(buf)
 	next := peek(buf)	
 	for next == token.Star || next == token.Slash {
@@ -119,7 +129,6 @@ func parseTerm(buf *tokenBuffer) node.Node {
 }
 
 func parseExponent(buf *tokenBuffer) node.Node {
-	fmt.Print("Exponent\n")
 	left := parseFactor(buf)	
 	if peek(buf) == token.Exponent {
 		oper, _ := consume(buf)
@@ -135,17 +144,55 @@ func parseExponent(buf *tokenBuffer) node.Node {
 }
 
 func parseFactor(buf *tokenBuffer) node.Node {
-	fmt.Printf("Factor\n%s\n", peek(buf))
+	if peek(buf) == token.Identifier {
+		tok, _ := consume(buf)
+		return node.VariableNode{
+			Name : tok.Name,
+		}
+	}
 	if peek(buf) == token.Number {
 		n, _ := expect(buf, token.Number)
 		val, err := strconv.ParseInt(n.Name, 10, 64)
 		if err != nil {
 			fmt.Print(err)
 		}
-		fmt.Printf("%s : %d", n.Name, val)		
 		return node.NumberNode{
 			Value : val,
 		}
 	}
+	tok, _ := consume(buf)
+	err := errors.New("reached end of expression parse, unexpected token encountered: " + tok.Name + " " + tok.Type.String())
+	log.Fatal(err)
 	return node.NumberNode{}
+}
+
+func parseDeclaration(buf *tokenBuffer) node.Node {
+	typetok, _ := expect(buf, token.Identifier)
+	idtok, _ := expect(buf, token.Identifier)
+	_, isType := types.TypeKeywords[typetok.Name]
+	if !isType {
+		err := fmt.Errorf("identifier: %s is not a type, unrecoverable state", typetok.Name)
+		log.Fatal(err)
+	}
+	expect(buf, token.Assignment)
+	expr := parseExpression(buf)
+	return node.DeclarationNode{
+		Type : types.TypeStruct{
+			Type : typetok.Name,
+		},
+		Name : idtok.Name,
+		Expression : expr,
+	}
+}
+
+func parseAssignment(buf *tokenBuffer) node.Node {
+	tok, _ := consume(buf)
+	name := tok.Name
+	expect(buf, token.Assignment)
+	assignedVal := parseExpression(buf)
+	expect(buf, token.StatementEnd)
+	return node.AssignmentNode{
+		Name : name,
+		Expression : assignedVal,
+	}
 }

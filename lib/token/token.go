@@ -103,11 +103,11 @@ var symbolToTokenType = map[rune]TokenType {
 
 func Tokenize(buf string) ([]Token, error) {
 	if len(buf) == 0 {
-		return nil, errors.New("Buffer is empty!")
+		return nil, errors.New("buffer is empty")
 	}
 
 	buffer := []rune(buf)
-	var return_tokens []Token
+	var returnTokens []Token
 	bufferIndex := 0
 
 	for bufferIndex < len(buffer)  {
@@ -122,7 +122,7 @@ func Tokenize(buf string) ([]Token, error) {
 		}
 		if isSymbol(c) {
 			bufferIndex++
-			return_tokens = append(return_tokens, Token{
+			returnTokens = append(returnTokens, Token{
 				Type : symbolToTokenType[c], 
 				Name : "",
 			})
@@ -137,7 +137,7 @@ func Tokenize(buf string) ([]Token, error) {
 				}
 				c = buffer[bufferIndex]
 			}
-			return_tokens = append(return_tokens, Token{
+			returnTokens = append(returnTokens, Token{
 				Name : string(str),
 				Type : Identifier,
 			})
@@ -152,66 +152,24 @@ func Tokenize(buf string) ([]Token, error) {
 				}
 				c = buffer[bufferIndex]
 			}
-			return_tokens = append(return_tokens, Token{
+			returnTokens = append(returnTokens, Token{
 				Name : string(str),
 				Type : Number,
 			})
 		}
 	}
-	return_tokens = append(return_tokens, Token{
+	returnTokens = append(returnTokens, Token{
 		Name : "End",
 		Type : End,
 	})
 
-	length := resolveMultiSymbol(return_tokens)
-	return return_tokens[0:length], nil
-
-	// for buffer_index < len(buffer) {
-		// fmt.Println(buffer_index)
-		// var c = buffer[buffer_index]
-		// if unicode.IsSpace(c) {
-			// buffer_index++
-			// continue
-		// }
-		// if (!unicode.IsLetter(c) && !isSymbol(c) && !unicode.IsNumber(c)) {
-			// return nil, errors.New("Invalid character: " + string(c) )
-		// }
-
-		// if isSymbol(c) {
-			// return_tokens = append(return_tokens, Token{symbolToTokenType[c], ""})
-			// buffer_index++
-			// continue
-		// }
-
-		// if (unicode.IsLetter(c)) {
-			// var start_index = buffer_index
-			// var c = buffer[buffer_index];
-			// for (buffer_index < len(buffer)) && !unicode.IsSpace(c) && !isSymbol(c) {
-				// fmt.Printf("%b isSpace, rune: %c\n", unicode.IsSpace(c), c)
-				// c = buffer[buffer_index]
-				// buffer_index ++;
-			// }
-			// var str = buffer[start_index:buffer_index]
-			// return_tokens = append(return_tokens, Token{Identifier, string(str)})
-		// }
-		// if(unicode.IsNumber(c)) {
-			// start_index := buffer_index
-			// for _, c = range buffer {
-				// fmt.Printf("%c : %b\n",c ,unicode.IsDigit(c))
-				// if !unicode.IsDigit(c) {
-					// break
-				// }
-				// buffer_index++
-			// }
-			// str := buffer[start_index:buffer_index]
-			// return_tokens = append(return_tokens, Token{Number, string(str)})
-		// }
-	// }
+	length := resolveMultiSymbol(returnTokens)
+	return returnTokens[0:length], nil
 }
 
 func isSymbol(c rune) bool {
-	var valid_symbols []rune = []rune("()+-*/=;^,{}<>!")
-	return slices.Contains(valid_symbols, c)
+	validSymbols := []rune("()+-*/=;^,{}<>!")
+	return slices.Contains(validSymbols, c)
 }
 
 var multiSymMap = map[[2]TokenType]TokenType {

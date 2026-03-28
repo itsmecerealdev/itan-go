@@ -8,9 +8,7 @@ import(
 )
 
 func main() {
-	buffer := "1234567 + 123456789"
-	// buffer := "  hello ^ 12345678 123456789 = = != == >= =>"
-	// buffer := "hello"
+	buffer := "1234567 + 123456789; int32 x = 5; x = 5;"
 	tokens, err := token.Tokenize(buffer)
 	if (err != nil) {
 		fmt.Printf("Error: %s\n", err);
@@ -21,4 +19,5 @@ func main() {
 	}
 	var root node.ProgramNode = parser.ParseProgram(tokens)
 	fmt.Println(root)
+	root.Visit()
 }
