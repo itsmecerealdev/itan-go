@@ -75,6 +75,7 @@ func parseStatement(buf *tokenBuffer) node.Node {
 		if tt == token.Number {
 			return parseExpression(buf)
 		}
+		tt = peek(buf)
 	}
 	return node.NumberNode{}
 }
