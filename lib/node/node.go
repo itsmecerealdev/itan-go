@@ -3,38 +3,51 @@ package node
 import (
 	"github.com/itsmecerealdev/itan-go/lib/types"
 	"github.com/itsmecerealdev/itan-go/lib/token"
-)
+) 
 
-//This gives us the ability to do []*Node, equivalent to cpp vector<Node*> abstract,
-//but we retain the concrete unlike c++
-
-type Node interface { 
-	isNode()
+type Node interface {
+	Visit()
 }
 
-type ExpressionNode interface {
-	isExpression()
+func (sn ScopeNode)Visit() { 
+
+}
+
+func (on OperandNode)Visit() { 
+
+}
+
+func (dn DeclarationNode)Visit() { 
+
+}
+
+func (an AssignmentNode)Visit() {
+
+}
+
+func (nn NumberNode)Visit() {
+
 }
 
 type ProgramNode struct {
-	Scope *ScopeNode
+	Scope ScopeNode
 }
 
 type FuncDeclNode struct {
 	Type types.TypeStruct
-	name string
-	params []*ParamNode
-	scope *ScopeNode
+	Name string
+	Params []ParamNode
+	Scope ScopeNode
 }
 
 type ParamNode struct {
 	Type types.TypeStruct
-	name string
-	value *ExpressionNode
+	Name string
+	Value Node
 }
 
 type ScopeNode struct {
-	Statements []*Node 
+	Statements []Node 
 }
 
 type Scope struct {
@@ -45,34 +58,22 @@ type Scope struct {
 }
 
 type OperandNode struct {
-	left *ExpressionNode
-	right *ExpressionNode
+	Left Node
+	Right Node
 	Type token.TokenType
 }
 
 type DeclarationNode struct {
 	Type types.TypeStruct
-	name string
-	expression *ExpressionNode
+	Name string
+	Expression Node
 }
 
 type AssignmentNode struct {
-	name string 
-	expression *ExpressionNode
+	Name string 
+	Expression Node
 }
 
 type NumberNode struct {
-	value int64
+	Value int64
 }
-
-//The node interface thing needs these though, even though they are stubs that do nada, as they restrict what types a []*Node fits
-//[]interface{} works too but it's unsafe, as ALL types in go implement the empty interface interface{}
-func (pn ProgramNode) isNode() {}
-func (sn ScopeNode) isNode() {}
-func (dn DeclarationNode) isNode() {}
-func (an AssignmentNode) isNode() {}
-func (nn NumberNode) isNode() {}
-
-//These are for *ExpressionNode capability to clamp what can fit in what
-//These will be things like OperandNode, NumberNode, BoolNode, etc
-func (nn NumberNode) isExpression(){}
