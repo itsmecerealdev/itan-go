@@ -91,6 +91,11 @@ func parseFuncDecl(buf *tokenBuffer) node.FuncDeclNode {
 		if err != nil {
 			log.Fatal(err)
 		}
+		_, isType := types.TypeKeywords[typeTok.Name]
+		if !isType {
+			err := fmt.Errorf("identifier: %s is not a type\n\tline, col %d, %d", typeTok.Name, typeTok.Line, typeTok.Col)
+			log.Fatal(err)
+		}
 		funcNode.Type = types.TypeStruct{ Type : typeTok.Name }
 	} else {
 		funcNode.Type = types.TypeStruct{ Type : "void" }
@@ -157,16 +162,19 @@ func parseScope(buf *tokenBuffer) node.ScopeNode {
 func parseStatement(buf *tokenBuffer) node.Node {
 	tt := peek(buf)
 	tn := peekAhead(buf)
+	var n node.Node
 	if tt == token.Identifier && tn == token.Identifier {
-		n := parseDeclaration(buf)
-		_, err := expect(buf, token.StatementEnd)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return n 
+		n = parseDeclaration(buf)
+	} else if tt == token.Identifier && tn == token.LParen {
+		n = parseFuncCall(buf)	
+	} else { 
+		fmt.Println("Here")
+		n = parseExprStatement(buf) 
 	}
-	n := parseExprStatement(buf)
-	expect(buf, token.StatementEnd)
+	_, err := expect(buf, token.StatementEnd)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return n 
 }
 
@@ -295,12 +303,28 @@ func parseAssignment(buf *tokenBuffer) node.Node {
 		log.Fatal(err)
 	}
 	assignedVal := parseExpression(buf)
-	_, err = expect(buf, token.StatementEnd)
-	if err != nil {
-		log.Fatal(err)
-	}
 	return node.AssignmentNode{
 		Name : name,
 		Expression : assignedVal,
 	}
+}
+
+func parseFuncCall(buf *tokenBuffer) node.Node {
+	nameTok, _ := consume(buf)
+	node := node.CastOrCallNode {
+		Name : nameTok.Name,
+	}
+	consume(buf)
+	for peek(buf) != token.RParen{
+		node.Arguments = append(node.Arguments, parseFactor(buf))
+		if peek(buf) == token.Comma {
+			consume(buf)
+			continue
+		} else { break }
+	}
+	_, err := expect(buf, token.RParen)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return node
 }

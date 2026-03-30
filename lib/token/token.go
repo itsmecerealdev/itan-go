@@ -128,7 +128,7 @@ func Tokenize(buf string, lineNumber int) ([]Token, error) {
 				Type : symbolToTokenType[c], 
 				Name : "",
 				Line: lineNumber,
-				Col: bufferIndex,
+				Col: bufferIndex + 1,
 			})
 		}
 		if unicode.IsLetter(c) {
@@ -146,7 +146,7 @@ func Tokenize(buf string, lineNumber int) ([]Token, error) {
 				Name : string(str),
 				Type : Identifier,
 				Line: lineNumber,
-				Col: startIndex,
+				Col: startIndex + 1,
 			})
 		}
 		if unicode.IsNumber(c) {
@@ -164,7 +164,7 @@ func Tokenize(buf string, lineNumber int) ([]Token, error) {
 				Name : string(str),
 				Type : Number,
 				Line: lineNumber,
-				Col: startIndex,
+				Col: startIndex + 1,
 			})
 		}
 	}

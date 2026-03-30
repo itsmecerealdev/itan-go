@@ -24,6 +24,13 @@ func (fdl FuncDeclNode)Visit() {
 	fdl.Scope.Visit()
 }
 
+func (coc CastOrCallNode)Visit() {
+	fmt.Println(coc.Name)
+	for _, leaf := range coc.Arguments {
+		leaf.Visit()
+	}
+}
+
 func (pan ParamNode)Visit() {
 	fmt.Printf("Param: %s Type: %s\n", pan.Name, pan.Type.Type)
 	if pan.HasDefault {
@@ -85,6 +92,11 @@ type FuncDeclNode struct {
 	Name string
 	Params []ParamNode
 	Scope ScopeNode
+}
+
+type CastOrCallNode struct {
+	Name string
+	Arguments []Node
 }
 
 type ParamNode struct {
