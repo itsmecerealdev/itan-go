@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"unicode"
+	"strings"
 
 	// "github.com/itsmecerealdev/itan-go/lib/node"
 	"github.com/itsmecerealdev/itan-go/lib/parser"
@@ -49,6 +50,10 @@ func tokenizeByLine(filePath string) []token.Token {
 	lineNumber := 1
 	for scanner.Scan() {
 		line := scanner.Text()
+		if strings.TrimSpace(line) == "" {
+			lineNumber++;
+			continue;
+		}
 		if checkIfComment(line) {
 			lineNumber++
 			continue
