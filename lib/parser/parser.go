@@ -180,7 +180,7 @@ func parseDeclaration(buf *tokenBuffer) node.Node {
 	}
 	_, isType := types.TypeKeywords[typetok.Name]
 	if !isType {
-		err := fmt.Errorf("\nidentifier: %s is not a type, unrecoverable state\n\t line, col %d, %d", typetok.Name, typetok.Line, typetok.Col )
+		err := fmt.Errorf("\nidentifier: %s is not a type, unrecoverable state in declaration\n\t line, col %d, %d", typetok.Name, typetok.Line, typetok.Col )
 		log.Fatal(err)
 	}
 	_, err = expect(buf, token.Assignment)
@@ -202,7 +202,7 @@ func parseAssignment(buf *tokenBuffer) node.Node {
 	name := tok.Name
 	_, isType := types.TypeKeywords[name]
 	if isType {
-		err := fmt.Errorf("\nidentifier: %s is a type and cannot be assigned a value. \n\t line, col: %d, %d", name, tok.Line, tok.Col)
+		err := fmt.Errorf("\nidentifier: %s is a type and cannot be assigned \n\t line, col: %d, %d", name, tok.Line, tok.Col)
 		log.Fatal(err)
 	}
 	_, err := expect(buf, token.Assignment)
