@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"unicode"
 
 	"github.com/itsmecerealdev/itan-go/lib/node"
 	"github.com/itsmecerealdev/itan-go/lib/parser"
@@ -48,6 +49,10 @@ func tokenizeByLine(filePath string) []token.Token {
 	lineNumber := 1
 	for scanner.Scan() {
 		line := scanner.Text()
+		if checkIfComment(line) {
+			lineNumber++
+			continue
+		}
 		tempTokens, err := token.Tokenize(line, lineNumber)
 		if err != nil {
 			log.Fatal(err)
@@ -56,4 +61,19 @@ func tokenizeByLine(filePath string) []token.Token {
 		lineNumber++;
 	}
 	return retTokens
+}
+
+func checkIfComment(line string) bool {
+	count := 0
+	res := ""
+	for _, c := range line {
+		if !unicode.IsSpace(rune(c)) {
+			count++
+			res += string(c)
+		}
+		if count >= 2 {
+			break
+		}
+	}
+	return res == "//"
 }
