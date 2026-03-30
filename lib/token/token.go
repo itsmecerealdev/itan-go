@@ -168,12 +168,6 @@ func Tokenize(buf string, lineNumber int) ([]Token, error) {
 			})
 		}
 	}
-	returnTokens = append(returnTokens, Token{
-		Name : "End",
-		Type : End,
-		Line: lineNumber,
-		Col: bufferIndex,
-	})
 
 	length := resolveMultiSymbol(returnTokens)
 	return returnTokens[0:length], nil

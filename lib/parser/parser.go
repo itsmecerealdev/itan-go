@@ -37,7 +37,7 @@ func peek(buf *tokenBuffer) token.TokenType {
 func expect(buf *tokenBuffer, ttype token.TokenType) (token.Token, error) {
 	t := buf.getCurrentToken()
 	if t.Type != ttype {
-		err := fmt.Errorf("expected: %s got: %s at line, col: %d, %d", ttype, t.Type, t.Line, t.Col)
+		err := fmt.Errorf("expected: %s got: %s \n\tline, col: %d, %d", ttype, t.Type, t.Line, t.Col)
 		return token.Token{}, err
 	}
 	return consume(buf)
@@ -74,7 +74,10 @@ func parseStatement(buf *tokenBuffer) node.Node {
 	tn := peekAhead(buf)
 	if tt == token.Identifier && tn == token.Identifier {
 		n := parseDeclaration(buf)
-		expect(buf, token.StatementEnd)
+		_, err := expect(buf, token.StatementEnd)
+		if err != nil {
+			log.Fatal(err)
+		}
 		return n 
 	}
 	n := parseExprStatement(buf)
@@ -161,20 +164,29 @@ func parseFactor(buf *tokenBuffer) node.Node {
 		}
 	}
 	tok, _ := consume(buf)
-	err := fmt.Errorf("reached end of expression parse, unexpected token encountered: " + tok.Name + " line, col: %d, %d", tok.Line, tok.Col)
+	err := fmt.Errorf("reached end of expression parse, unexpected token encountered: " + tok.Name + "\n\tline, col: %d, %d", tok.Line, tok.Col)
 	log.Fatal(err)
 	return node.NumberNode{}
 }
 
 func parseDeclaration(buf *tokenBuffer) node.Node {
-	typetok, _ := expect(buf, token.Identifier)
-	idtok, _ := expect(buf, token.Identifier)
-	_, isType := types.TypeKeywords[typetok.Name]
-	if !isType {
-		err := fmt.Errorf("identifier: %s at line, col: %d, %d  is not a type, unrecoverable state", typetok.Name, typetok.Line, typetok.Col )
+	typetok, err := expect(buf, token.Identifier)
+	if err != nil {
 		log.Fatal(err)
 	}
-	expect(buf, token.Assignment)
+	idtok, err := expect(buf, token.Identifier)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, isType := types.TypeKeywords[typetok.Name]
+	if !isType {
+		err := fmt.Errorf("\nidentifier: %s is not a type, unrecoverable state\n\t line, col %d, %d", typetok.Name, typetok.Line, typetok.Col )
+		log.Fatal(err)
+	}
+	_, err = expect(buf, token.Assignment)
+	if err != nil {
+		log.Fatal(err)
+	}
 	expr := parseExpression(buf)
 	return node.DeclarationNode{
 		Type : types.TypeStruct{
@@ -188,9 +200,20 @@ func parseDeclaration(buf *tokenBuffer) node.Node {
 func parseAssignment(buf *tokenBuffer) node.Node {
 	tok, _ := consume(buf)
 	name := tok.Name
-	expect(buf, token.Assignment)
+	_, isType := types.TypeKeywords[name]
+	if isType {
+		err := fmt.Errorf("\nidentifier: %s is a type and cannot be assigned a value. \n\t line, col: %d, %d", name, tok.Line, tok.Col)
+		log.Fatal(err)
+	}
+	_, err := expect(buf, token.Assignment)
+	if err != nil {
+		log.Fatal(err)
+	}
 	assignedVal := parseExpression(buf)
-	expect(buf, token.StatementEnd)
+	_, err = expect(buf, token.StatementEnd)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return node.AssignmentNode{
 		Name : name,
 		Expression : assignedVal,
