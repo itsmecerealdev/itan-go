@@ -128,7 +128,7 @@ func parseParams(buf *tokenBuffer) []node.ParamNode {
 		if peek(buf) == token.Comma {
 			consume(buf)
 			continue
-		} else if peek(buf) == token.RParen { break }
+		} else { break }
 	}
 	_, err := expect(buf, token.RParen)
 	if err != nil {
