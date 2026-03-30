@@ -79,6 +79,8 @@ func (tt TokenType)String() string {
 type Token struct {
 	Type TokenType
 	Name string
+	Line int
+	Col int
 }
 
 var symbolToTokenType = map[rune]TokenType {
@@ -101,7 +103,7 @@ var symbolToTokenType = map[rune]TokenType {
 	'}': RBrace,
 }
 
-func Tokenize(buf string) ([]Token, error) {
+func Tokenize(buf string, lineNumber int) ([]Token, error) {
 	if len(buf) == 0 {
 		return nil, errors.New("buffer is empty")
 	}
@@ -125,6 +127,8 @@ func Tokenize(buf string) ([]Token, error) {
 			returnTokens = append(returnTokens, Token{
 				Type : symbolToTokenType[c], 
 				Name : "",
+				Line: lineNumber,
+				Col: bufferIndex,
 			})
 		}
 		if unicode.IsLetter(c) {
@@ -140,6 +144,8 @@ func Tokenize(buf string) ([]Token, error) {
 			returnTokens = append(returnTokens, Token{
 				Name : string(str),
 				Type : Identifier,
+				Line: lineNumber,
+				Col: bufferIndex,
 			})
 		}
 		if unicode.IsNumber(c) {
@@ -155,12 +161,16 @@ func Tokenize(buf string) ([]Token, error) {
 			returnTokens = append(returnTokens, Token{
 				Name : string(str),
 				Type : Number,
+				Line: lineNumber,
+				Col: bufferIndex,
 			})
 		}
 	}
 	returnTokens = append(returnTokens, Token{
 		Name : "End",
 		Type : End,
+		Line: lineNumber,
+		Col: bufferIndex,
 	})
 
 	length := resolveMultiSymbol(returnTokens)
