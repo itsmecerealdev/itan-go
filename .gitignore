@@ -8,6 +8,9 @@
 *.so
 *.dylib
 
+# Test itanlang filrd
+*.it
+
 # Test binary, built with `go test -c`
 *.test
 

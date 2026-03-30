@@ -133,6 +133,7 @@ func Tokenize(buf string, lineNumber int) ([]Token, error) {
 		}
 		if unicode.IsLetter(c) {
 			var str []rune 
+			startIndex := bufferIndex
 			for !unicode.IsSpace(c) && !isSymbol(c) {
 				str = append(str, c)
 				bufferIndex++
@@ -145,11 +146,12 @@ func Tokenize(buf string, lineNumber int) ([]Token, error) {
 				Name : string(str),
 				Type : Identifier,
 				Line: lineNumber,
-				Col: bufferIndex,
+				Col: startIndex,
 			})
 		}
 		if unicode.IsNumber(c) {
 			var str []rune 
+			startIndex := bufferIndex
 			for !unicode.IsSpace(c) && !isSymbol(c) && !unicode.IsLetter(c) {
 				str = append(str, c)
 				bufferIndex++
@@ -162,7 +164,7 @@ func Tokenize(buf string, lineNumber int) ([]Token, error) {
 				Name : string(str),
 				Type : Number,
 				Line: lineNumber,
-				Col: bufferIndex,
+				Col: startIndex,
 			})
 		}
 	}

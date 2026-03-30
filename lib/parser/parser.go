@@ -37,7 +37,7 @@ func peek(buf *tokenBuffer) token.TokenType {
 func expect(buf *tokenBuffer, ttype token.TokenType) (token.Token, error) {
 	t := buf.getCurrentToken()
 	if t.Type != ttype {
-		err := fmt.Errorf("expected: %s got: %s at index -> %d", ttype, t.Type, buf.tokenIndex)
+		err := fmt.Errorf("expected: %s got: %s at line, col: %d, %d", ttype, t.Type, t.Line, t.Col)
 		return token.Token{}, err
 	}
 	return consume(buf)
@@ -161,7 +161,7 @@ func parseFactor(buf *tokenBuffer) node.Node {
 		}
 	}
 	tok, _ := consume(buf)
-	err := errors.New("reached end of expression parse, unexpected token encountered: " + tok.Name + " " + tok.Type.String())
+	err := fmt.Errorf("reached end of expression parse, unexpected token encountered: " + tok.Name + " line, col: %d, %d", tok.Line, tok.Col)
 	log.Fatal(err)
 	return node.NumberNode{}
 }
@@ -171,7 +171,7 @@ func parseDeclaration(buf *tokenBuffer) node.Node {
 	idtok, _ := expect(buf, token.Identifier)
 	_, isType := types.TypeKeywords[typetok.Name]
 	if !isType {
-		err := fmt.Errorf("identifier: %s is not a type, unrecoverable state", typetok.Name)
+		err := fmt.Errorf("identifier: %s at line, col: %d, %d  is not a type, unrecoverable state", typetok.Name, typetok.Line, typetok.Col )
 		log.Fatal(err)
 	}
 	expect(buf, token.Assignment)
