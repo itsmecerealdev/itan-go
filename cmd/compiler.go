@@ -7,7 +7,7 @@ import (
 	"os"
 	"unicode"
 
-	"github.com/itsmecerealdev/itan-go/lib/node"
+	// "github.com/itsmecerealdev/itan-go/lib/node"
 	"github.com/itsmecerealdev/itan-go/lib/parser"
 	"github.com/itsmecerealdev/itan-go/lib/token"
 )
@@ -33,7 +33,7 @@ func main() {
 	for _, t := range tokens {
 		fmt.Printf("Token: %s, Name: %s, Line: %d, Col: %d\n", t.Type, t.Name, t.Line, t.Col)
 	}
-	var root node.ProgramNode = parser.ParseProgram(tokens)
+	root := parser.ParseProgram(tokens)
 	fmt.Println(root)
 	root.Visit()
 }

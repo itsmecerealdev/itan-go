@@ -16,6 +16,21 @@ func (pn ProgramNode)Visit() {
 	pn.Scope.Visit()
 }
 
+func (fdl FuncDeclNode)Visit() {
+	fmt.Printf("Func: %s Type: %s\n", fdl.Name, fdl.Type.Type)
+	for _, p := range fdl.Params {
+		p.Visit()
+	}
+	fdl.Scope.Visit()
+}
+
+func (pan ParamNode)Visit() {
+	fmt.Printf("Param: %s Type: %s\n", pan.Name, pan.Type.Type)
+	if pan.HasDefault {
+		pan.Default.Visit()
+	}
+}
+
 func (sn ScopeNode)Visit() { 
 	fmt.Println("Scope:")
 	for _, statement := range sn.Statements {
@@ -75,7 +90,8 @@ type FuncDeclNode struct {
 type ParamNode struct {
 	Type types.TypeStruct
 	Name string
-	Value Node
+	HasDefault bool
+	Default Node
 }
 
 type ScopeNode struct {

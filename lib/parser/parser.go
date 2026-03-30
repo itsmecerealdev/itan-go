@@ -55,16 +55,101 @@ func consume(buf *tokenBuffer) (token.Token, error) {
 
 func ParseProgram(tokens []token.Token) node.ProgramNode {
 	buf := tokenBuffer{tokens, 0}
-	return node.ProgramNode{
-		Scope : parseScope(&buf),
+	global := node.ScopeNode {}
+	tt := peek(&buf)
+	for tt != token.End {
+		if tt == token.LBrace {
+			global.Statements = append(global.Statements, parseScope(&buf))
+		} else if tt == token.Identifier && peekAhead(&buf) == token.LParen {
+			global.Statements = append(global.Statements, parseFuncDecl(&buf))	
+		} else {
+			global.Statements = append(global.Statements, parseStatement(&buf))
+		}
+		tt = peek(&buf)	
 	}
+	return node.ProgramNode{
+		Scope : global,
+	}
+}
+
+func parseFuncDecl(buf *tokenBuffer) node.FuncDeclNode {
+	idTok, err := expect(buf, token.Identifier)
+	if err != nil {
+		log.Fatal(err)
+	}
+	funcNode := node.FuncDeclNode{
+		Name : idTok.Name,
+	}
+	_, err = expect(buf, token.LParen)
+	if err != nil {
+		log.Fatal(err)
+	}
+	funcNode.Params = parseParams(buf)	
+	if peek(buf) == token.Return {
+		consume(buf)
+		typeTok, err := expect(buf, token.Identifier)
+		if err != nil {
+			log.Fatal(err)
+		}
+		funcNode.Type = types.TypeStruct{ Type : typeTok.Name }
+	} else {
+		funcNode.Type = types.TypeStruct{ Type : "void" }
+	}
+	funcNode.Scope = parseScope(buf)
+	return funcNode
+}
+
+func parseParams(buf *tokenBuffer) []node.ParamNode {
+	params := []node.ParamNode{}
+	for {
+		typeTok, err := expect(buf, token.Identifier)
+		if err != nil {
+			log.Fatal(err)
+		}
+		_, isType := types.TypeKeywords[typeTok.Name]
+		if !isType {
+			err := fmt.Errorf("identifier: %s is not a type\n\tline, col %d, %d", typeTok.Name, typeTok.Line, typeTok.Col)
+			log.Fatal(err)
+		}
+		nameTok, err := expect(buf, token.Identifier)
+		if err != nil {
+			log.Fatal(err)
+		}
+		currentParam := node.ParamNode{
+			Type : types.TypeStruct{ Type : typeTok.Name},
+			Name : nameTok.Name,
+		}
+		if peek(buf) == token.Assignment {
+			consume(buf);
+			currentParam.HasDefault = true;
+			currentParam.Default = parseExpression(buf)
+		}
+		params = append(params, currentParam)
+		if peek(buf) == token.Comma {
+			consume(buf)
+			continue
+		} else if peek(buf) == token.RParen { break }
+	}
+	_, err := expect(buf, token.RParen)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return params
 }
 
 func parseScope(buf *tokenBuffer) node.ScopeNode {
 	n := node.ScopeNode{}
+	_, err := expect(buf, token.LBrace)
+	if err != nil {
+		log.Fatal(err)
+	}
 	//TODO add conditions for parsing func decls and stuff later. current implementation is just arithmetic for now
-	for peek(buf) != token.End {
-		n.Statements = append(n.Statements, parseStatement(buf))	
+	for peek(buf) != token.RBrace {
+		n.Statements = append(n.Statements, parseStatement(buf))
+	}
+	_, err = expect(buf, token.RBrace)
+	if err != nil {
+		log.Fatal(err)
 	}
 	return n
 }
@@ -164,7 +249,7 @@ func parseFactor(buf *tokenBuffer) node.Node {
 		}
 	}
 	tok, _ := consume(buf)
-	err := fmt.Errorf("reached end of expression parse, unexpected token encountered: " + tok.Name + "\n\tline, col: %d, %d", tok.Line, tok.Col)
+	err := fmt.Errorf("reached end of expression parse, unexpected token encountered: " + tok.Type.String() + "\n\tline, col: %d, %d", tok.Line, tok.Col)
 	log.Fatal(err)
 	return node.NumberNode{}
 }
