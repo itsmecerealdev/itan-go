@@ -1,74 +1,99 @@
 package node
 
 import (
-	"fmt"
+	// "fmt"
 
 	"github.com/itsmecerealdev/itan-go/lib/token"
 	"github.com/itsmecerealdev/itan-go/lib/types"
 ) 
 
 type Node interface {
-	Visit()
+	Accept(visitor Visitor)
 }
 
-func (pn ProgramNode)Visit() {
-	fmt.Println("Program:")
-	pn.Scope.Visit()
+func (node ProgramNode)Accept(visitor Visitor) {
+	// fmt.Println("Program:")
+	visitor.Action(node)
+	node.Scope.Accept(visitor)
 }
 
-func (fdl FuncDeclNode)Visit() {
-	fmt.Printf("Func: %s Type: %s\n", fdl.Name, fdl.Type.Type)
-	for _, p := range fdl.Params {
-		p.Visit()
+func (node FuncDeclNode)Accept(visitor Visitor) {
+	// fmt.Printf("Func: %s Type: %s\n", node.Name, node.Type.Type)
+	visitor.Action(node)
+	for _, p := range node.Params {
+		p.Accept(visitor)
 	}
-	fdl.Scope.Visit()
+	visitor.MiddleAction(node)
+	node.Scope.Accept(visitor)
+	visitor.ExitAction(node)
 }
 
-func (coc CastOrCallNode)Visit() {
-	fmt.Println(coc.Name)
-	for _, leaf := range coc.Arguments {
-		leaf.Visit()
+func (node CastOrCallNode)Accept(visitor Visitor) {
+	// fmt.Println(node.Name)
+	visitor.Action(node)
+	for _, leaf := range node.Arguments {
+		leaf.Accept(visitor)
+	}
+	visitor.ExitAction(node)
+}
+
+func (node ParamNode)Accept(visitor Visitor) {
+	// fmt.Printf("Param: %s Type: %s ", node.Name, node.Type.Type)
+	visitor.Action(node)
+	if node.HasDefault {
+		node.Default.Accept(visitor)
 	}
 }
 
-func (pan ParamNode)Visit() {
-	fmt.Printf("Param: %s Type: %s\n", pan.Name, pan.Type.Type)
-	if pan.HasDefault {
-		pan.Default.Visit()
+func (node ReturnNode)Accept(visitor Visitor) {
+	// fmt.Printf("Return: ")
+	visitor.Action(node)
+	node.Expression.Accept(visitor)
+	visitor.ExitAction(node)
+}
+
+func (node ScopeNode)Accept(visitor Visitor) { 
+	// fmt.Println("Scope:")
+	visitor.Action(node)
+	for _, statement := range node.Statements {
+		statement.Accept(visitor)
+		// fmt.Print("\n")
 	}
+	visitor.ExitAction(node)
 }
 
-func (sn ScopeNode)Visit() { 
-	fmt.Println("Scope:")
-	for _, statement := range sn.Statements {
-		statement.Visit()
-		fmt.Print("\n")
-	}
+func (node OperandNode)Accept(visitor Visitor) { 
+	visitor.Action(node)
+	node.Left.Accept(visitor)
+	visitor.MiddleAction(node)
+	// fmt.Println(node.Type)
+	node.Right.Accept(visitor)
+	visitor.ExitAction(node)
 }
 
-func (on OperandNode)Visit() { 
-	on.Left.Visit()
-	fmt.Println(on.Type)
-	on.Right.Visit()
+func (node DeclarationNode)Accept(visitor Visitor) { 
+	// fmt.Println(node.Type)
+	// fmt.Println(node.Name)
+	visitor.Action(node)
+	node.Expression.Accept(visitor)
+	visitor.ExitAction(node)
 }
 
-func (dn DeclarationNode)Visit() { 
-	fmt.Println(dn.Type)
-	fmt.Println(dn.Name)
-	dn.Expression.Visit()
+func (node AssignmentNode)Accept(visitor Visitor) {
+	// fmt.Println(node.Name)
+	visitor.Action(node)
+	node.Expression.Accept(visitor)
+	visitor.ExitAction(node)
 }
 
-func (an AssignmentNode)Visit() {
-	fmt.Println(an.Name)
-	an.Expression.Visit()
+func (node VariableNode)Accept(visitor Visitor) {
+	// fmt.Print(node.Name)
+	visitor.Action(node)
 }
 
-func (vn VariableNode)Visit() {
-	fmt.Println(vn.Name)
-}
-
-func (nn NumberNode)Visit() {
-	fmt.Println(nn.Value)
+func (node NumberNode)Accept(visitor Visitor) {
+	// fmt.Print(node.Value)
+	visitor.Action(node)
 }
 
 type ProgramNode struct {
@@ -79,12 +104,12 @@ type LeafNode interface {
 	GetVal()
 }
 
-func (vn VariableNode)GetVal() string {
-	return vn.Name
+func (node VariableNode)GetVal() string {
+	return node.Name
 }
 
-func (nn NumberNode)GetVal() int64 {
-	return nn.Value
+func (node NumberNode)GetVal() int64 {
+	return node.Value
 }
 
 type FuncDeclNode struct {
@@ -104,6 +129,11 @@ type ParamNode struct {
 	Name string
 	HasDefault bool
 	Default Node
+}
+
+type ReturnNode struct {
+	Type types.TypeStruct
+	Expression Node
 }
 
 type ScopeNode struct {

@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"unicode"
 	"strings"
+	"unicode"
 
 	// "github.com/itsmecerealdev/itan-go/lib/node"
+	"github.com/itsmecerealdev/itan-go/lib/node"
 	"github.com/itsmecerealdev/itan-go/lib/parser"
 	"github.com/itsmecerealdev/itan-go/lib/token"
 )
@@ -36,7 +37,8 @@ func main() {
 	}
 	root := parser.ParseProgram(tokens)
 	fmt.Println(root)
-	root.Visit()
+	printer := node.Printer{}
+	root.Accept(&printer)
 }
 
 func tokenizeByLine(filePath string) []token.Token {

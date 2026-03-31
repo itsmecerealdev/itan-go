@@ -167,6 +167,8 @@ func parseStatement(buf *tokenBuffer) node.Node {
 		n = parseDeclaration(buf)
 	} else if tt == token.Identifier && tn == token.LParen {
 		n = parseFuncCall(buf)	
+	} else if tt == token.Return {
+		n = parseReturn(buf)
 	} else { 
 		fmt.Println("Here")
 		n = parseExprStatement(buf) 
@@ -325,6 +327,14 @@ func parseFuncCall(buf *tokenBuffer) node.Node {
 	_, err := expect(buf, token.RParen)
 	if err != nil {
 		log.Fatal(err)
+	}
+	return node
+}
+
+func parseReturn(buf *tokenBuffer) node.ReturnNode {
+	consume(buf)
+	node := node.ReturnNode {
+		Expression : parseExpression(buf),
 	}
 	return node
 }
