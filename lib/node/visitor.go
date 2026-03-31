@@ -17,7 +17,7 @@ func (printer *Printer)Action(currNode Node) {
 		fmt.Println("Program:")
 	case FuncDeclNode:
 		printer.TabHelper()
-		fmt.Printf("%s %s(", concrete.Type.Type, concrete.Name)
+		fmt.Printf("%s(", concrete.Name)
 	case CastOrCallNode:
 		printer.TabHelper()
 		fmt.Printf("%s(", concrete.Name)
@@ -51,7 +51,7 @@ func (printer *Printer)Action(currNode Node) {
 func (printer *Printer)MiddleAction(currNode Node) {
 	switch concrete := currNode.(type) {
 		case FuncDeclNode:
-			fmt.Print(") ")
+			fmt.Printf(") => %s ", concrete.Type.Type)
 		case OperandNode:
 			fmt.Printf(" %s ", concrete.Type.String())
 	}
