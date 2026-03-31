@@ -22,7 +22,7 @@ func (printer *Printer)Action(currNode Node) {
 		printer.TabHelper()
 		fmt.Printf("%s(", concrete.Name)
 	case ParamNode:	
-		fmt.Printf("Name: %s Type: %s ", concrete.Type.Type, concrete.Name)
+		fmt.Printf("%s %s ", concrete.Type.Type, concrete.Name)
 		if concrete.HasDefault {
 			fmt.Printf("= ")
 		}
