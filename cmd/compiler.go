@@ -53,8 +53,8 @@ func tokenizeByLine(filePath string) []token.Token {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.TrimSpace(line) == "" {
-			lineNumber++;
-			continue;
+			lineNumber++
+			continue
 		}
 		if checkIfComment(line) {
 			lineNumber++
