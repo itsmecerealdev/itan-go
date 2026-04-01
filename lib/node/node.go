@@ -12,13 +12,11 @@ type Node interface {
 }
 
 func (node ProgramNode)Accept(visitor Visitor) {
-	// fmt.Println("Program:")
 	visitor.Action(node)
 	node.Scope.Accept(visitor)
 }
 
 func (node FuncDeclNode)Accept(visitor Visitor) {
-	// fmt.Printf("Func: %s Type: %s\n", node.Name, node.Type.Type)
 	visitor.Action(node)
 	for _, p := range node.Params {
 		p.Accept(visitor)
@@ -29,7 +27,6 @@ func (node FuncDeclNode)Accept(visitor Visitor) {
 }
 
 func (node CastOrCallNode)Accept(visitor Visitor) {
-	// fmt.Println(node.Name)
 	visitor.Action(node)
 	for _, leaf := range node.Arguments {
 		leaf.Accept(visitor)
@@ -38,7 +35,6 @@ func (node CastOrCallNode)Accept(visitor Visitor) {
 }
 
 func (node ParamNode)Accept(visitor Visitor) {
-	// fmt.Printf("Param: %s Type: %s ", node.Name, node.Type.Type)
 	visitor.Action(node)
 	if node.HasDefault {
 		node.Default.Accept(visitor)
@@ -46,18 +42,15 @@ func (node ParamNode)Accept(visitor Visitor) {
 }
 
 func (node ReturnNode)Accept(visitor Visitor) {
-	// fmt.Printf("Return: ")
 	visitor.Action(node)
 	node.Expression.Accept(visitor)
 	visitor.ExitAction(node)
 }
 
 func (node ScopeNode)Accept(visitor Visitor) { 
-	// fmt.Println("Scope:")
 	visitor.Action(node)
 	for _, statement := range node.Statements {
 		statement.Accept(visitor)
-		// fmt.Print("\n")
 	}
 	visitor.ExitAction(node)
 }
@@ -66,33 +59,27 @@ func (node OperandNode)Accept(visitor Visitor) {
 	visitor.Action(node)
 	node.Left.Accept(visitor)
 	visitor.MiddleAction(node)
-	// fmt.Println(node.Type)
 	node.Right.Accept(visitor)
 	visitor.ExitAction(node)
 }
 
 func (node DeclarationNode)Accept(visitor Visitor) { 
-	// fmt.Println(node.Type)
-	// fmt.Println(node.Name)
 	visitor.Action(node)
 	node.Expression.Accept(visitor)
 	visitor.ExitAction(node)
 }
 
 func (node AssignmentNode)Accept(visitor Visitor) {
-	// fmt.Println(node.Name)
 	visitor.Action(node)
 	node.Expression.Accept(visitor)
 	visitor.ExitAction(node)
 }
 
 func (node VariableNode)Accept(visitor Visitor) {
-	// fmt.Print(node.Name)
 	visitor.Action(node)
 }
 
 func (node NumberNode)Accept(visitor Visitor) {
-	// fmt.Print(node.Value)
 	visitor.Action(node)
 }
 
