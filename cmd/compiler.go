@@ -36,7 +36,6 @@ func main() {
 		fmt.Printf("Token: %s, Name: %s, Line: %d, Col: %d\n", t.Type, t.Name, t.Line, t.Col)
 	}
 	root := parser.ParseProgram(tokens)
-	fmt.Println(root)
 	printer := node.Printer{}
 	declarator := node.Declarator{}
 	root.Accept(&printer)

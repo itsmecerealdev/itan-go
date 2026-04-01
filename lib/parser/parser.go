@@ -170,7 +170,6 @@ func parseStatement(buf *tokenBuffer) node.Node {
 	} else if tt == token.Return {
 		n = parseReturn(buf)
 	} else { 
-		fmt.Println("Here")
 		n = parseExprStatement(buf) 
 	}
 	_, err := expect(buf, token.StatementEnd)
