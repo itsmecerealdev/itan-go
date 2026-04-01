@@ -68,7 +68,7 @@ func ParseProgram(tokens []token.Token) node.ProgramNode {
 		tt = peek(&buf)	
 	}
 	return node.ProgramNode{
-		Scope : global,
+		Scope: global,
 	}
 }
 
@@ -78,7 +78,7 @@ func parseFuncDecl(buf *tokenBuffer) node.FuncDeclNode {
 		log.Fatal(err)
 	}
 	funcNode := node.FuncDeclNode{
-		Name : idTok.Name,
+		Name: idTok.Name,
 	}
 	_, err = expect(buf, token.LParen)
 	if err != nil {
@@ -121,8 +121,8 @@ func parseParams(buf *tokenBuffer) []node.ParamNode {
 			log.Fatal(err)
 		}
 		currentParam := node.ParamNode{
-			Type : types.TypeStruct{ Type : typeTok.Name},
-			Name : nameTok.Name,
+			Type: types.TypeStruct{ Type : typeTok.Name},
+			Name: nameTok.Name,
 		}
 		if peek(buf) == token.Assignment {
 			consume(buf);
@@ -148,7 +148,6 @@ func parseScope(buf *tokenBuffer) node.ScopeNode {
 	if err != nil {
 		log.Fatal(err)
 	}
-	//TODO add conditions for parsing func decls and stuff later. current implementation is just arithmetic for now
 	for peek(buf) != token.RBrace {
 		n.Statements = append(n.Statements, parseStatement(buf))
 	}
@@ -198,9 +197,9 @@ func parseExpression(buf *tokenBuffer) node.Node {
 		oper, _ := consume(buf)	
 		right := parseTerm(buf)
 		temp := node.OperandNode {
-			Left : left,
-			Right : right,
-			Type : oper.Type,
+			Left: left,
+			Right: right,
+			Type: oper.Type,
 		}
 		next = peek(buf)
 		left = temp
@@ -215,9 +214,9 @@ func parseTerm(buf *tokenBuffer) node.Node {
 		oper, _ := consume(buf)	
 		right := parseFactor(buf)
 		temp := node.OperandNode {
-			Left : left,
-			Right : right,
-			Type : oper.Type,
+			Left: left,
+			Right: right,
+			Type: oper.Type,
 		}
 		next = peek(buf)
 		left = temp
@@ -231,9 +230,9 @@ func parseExponent(buf *tokenBuffer) node.Node {
 		oper, _ := consume(buf)
 		right := parseExponent(buf)
 		temp := node.OperandNode {
-			Left : left,
-			Right : right,
-			Type : oper.Type,
+			Left: left,
+			Right: right,
+			Type: oper.Type,
 		}
 		return temp 
 	}
@@ -244,7 +243,7 @@ func parseFactor(buf *tokenBuffer) node.Node {
 	if peek(buf) == token.Identifier {
 		tok, _ := consume(buf)
 		return node.VariableNode{
-			Name : tok.Name,
+			Name: tok.Name,
 		}
 	}
 	if peek(buf) == token.Number {
@@ -254,7 +253,7 @@ func parseFactor(buf *tokenBuffer) node.Node {
 			fmt.Print(err)
 		}
 		return node.NumberNode{
-			Value : val,
+			Value: val,
 		}
 	}
 	tok, _ := consume(buf)
@@ -283,11 +282,11 @@ func parseDeclaration(buf *tokenBuffer) node.Node {
 	}
 	expr := parseExpression(buf)
 	return node.DeclarationNode{
-		Type : types.TypeStruct{
-			Type : typetok.Name,
+		Type: types.TypeStruct{
+			Type: typetok.Name,
 		},
-		Name : idtok.Name,
-		Expression : expr,
+		Name: idtok.Name,
+		Expression: expr,
 	}
 }
 
@@ -305,15 +304,15 @@ func parseAssignment(buf *tokenBuffer) node.Node {
 	}
 	assignedVal := parseExpression(buf)
 	return node.AssignmentNode{
-		Name : name,
-		Expression : assignedVal,
+		Name: name,
+		Expression: assignedVal,
 	}
 }
 
 func parseFuncCall(buf *tokenBuffer) node.Node {
 	nameTok, _ := consume(buf)
 	node := node.CastOrCallNode {
-		Name : nameTok.Name,
+		Name: nameTok.Name,
 	}
 	consume(buf)
 	for peek(buf) != token.RParen{
@@ -333,7 +332,7 @@ func parseFuncCall(buf *tokenBuffer) node.Node {
 func parseReturn(buf *tokenBuffer) node.ReturnNode {
 	consume(buf)
 	node := node.ReturnNode {
-		Expression : parseExpression(buf),
+		Expression: parseExpression(buf),
 	}
 	return node
 }

@@ -19,8 +19,8 @@ func main() {
 		filePath := os.Args[1]
 		tokens = tokenizeByLine(filePath)
 		tokens = append(tokens, token.Token{
-			Name : "End",
-			Type : token.End,
+			Name: "End",
+			Type: token.End,
 		})
 	} else {
 		log.Fatal("compiler requires file name (go run cmd/compiler.go filename). include the extension (filename.it) to compile")

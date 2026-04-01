@@ -28,9 +28,9 @@ func (declarator *Declarator)Action(node Node) {
 			concrete.Symbols.Parent = &declarator.scopes[len(declarator.scopes)-1]
 		}
 		newScope := Scope {
-			Variables : make(map[string]DeclarationNode),
-			Params : make(map[string]ParamNode),
-			Funcs : make(map[string]FuncDeclNode),
+			Variables: make(map[string]DeclarationNode),
+			Params: make(map[string]ParamNode),
+			Funcs: make(map[string]FuncDeclNode),
 		}
 		declarator.scopes = append(declarator.scopes, newScope)
 	case DeclarationNode:
