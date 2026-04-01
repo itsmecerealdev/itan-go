@@ -138,6 +138,7 @@ type ReturnNode struct {
 
 type ScopeNode struct {
 	Statements []Node 
+	Symbols Scope
 }
 
 type Scope struct {

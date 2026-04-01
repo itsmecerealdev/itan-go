@@ -38,7 +38,9 @@ func main() {
 	root := parser.ParseProgram(tokens)
 	fmt.Println(root)
 	printer := node.Printer{}
+	declarator := node.Declarator{}
 	root.Accept(&printer)
+	root.Accept(&declarator)
 }
 
 func tokenizeByLine(filePath string) []token.Token {
