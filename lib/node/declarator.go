@@ -5,6 +5,10 @@ import (
 	"log"
 )
 
+type Declarator struct {
+	scopes []*Scope
+}
+
 func (declarator *Declarator)Action(node Node) {
 	switch concrete := node.(type) {
 	case FuncDeclNode:
@@ -25,14 +29,12 @@ func (declarator *Declarator)Action(node Node) {
 		}
 	case ScopeNode:
 		if len(declarator.scopes) > 0 {
-			concrete.Symbols.Parent = &declarator.scopes[len(declarator.scopes)-1]
+			concrete.Symbols.Parent = declarator.scopes[len(declarator.scopes)-1]
 		}
-		newScope := Scope {
-			Variables: make(map[string]DeclarationNode),
-			Params: make(map[string]ParamNode),
-			Funcs: make(map[string]FuncDeclNode),
-		}
-		declarator.scopes = append(declarator.scopes, newScope)
+		concrete.Symbols.Variables = make(map[string]DeclarationNode)
+		concrete.Symbols.Params = make(map[string]ParamNode)
+		concrete.Symbols.Funcs = make(map[string]FuncDeclNode)
+		declarator.scopes = append(declarator.scopes, concrete.Symbols)
 	case DeclarationNode:
 		scope := declarator.scopes[len(declarator.scopes)-1]
 		if _, exists := scope.Variables[concrete.Name]; !exists {

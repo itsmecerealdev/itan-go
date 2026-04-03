@@ -1,8 +1,17 @@
 package node
 
 import (
+	"strings"
 	"fmt"
 )
+
+type Printer struct {
+	TabDepth int
+}
+
+func (printer Printer)TabHelper() {
+	fmt.Print(strings.Repeat("   ", printer.TabDepth))
+}
 
 func (printer *Printer)Action(currNode Node) {
 	switch concrete := currNode.(type) {

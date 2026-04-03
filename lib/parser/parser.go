@@ -55,7 +55,8 @@ func consume(buf *tokenBuffer) (token.Token, error) {
 
 func ParseProgram(tokens []token.Token) node.ProgramNode {
 	buf := tokenBuffer{tokens, 0}
-	global := node.ScopeNode {}
+	global := node.ScopeNode{}
+	global.Symbols = &node.Scope{}
 	tt := peek(&buf)
 	for tt != token.End {
 		if tt == token.LBrace {
@@ -155,6 +156,7 @@ func parseScope(buf *tokenBuffer) node.ScopeNode {
 	if err != nil {
 		log.Fatal(err)
 	}
+	n.Symbols = &node.Scope{}
 	return n
 }
 

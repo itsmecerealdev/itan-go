@@ -108,6 +108,7 @@ type FuncDeclNode struct {
 
 type CastOrCallNode struct {
 	Name string
+	Res Resolution	
 	Arguments []Node
 }
 
@@ -125,7 +126,7 @@ type ReturnNode struct {
 
 type ScopeNode struct {
 	Statements []Node 
-	Symbols Scope
+	Symbols *Scope
 }
 
 type Scope struct {
@@ -159,3 +160,10 @@ type VariableNode struct {
 type NumberNode struct {
 	Value int64
 }
+
+type Resolution int
+
+const (
+	Cast = iota
+	Call
+)
