@@ -4,15 +4,38 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strconv"
+	//"strconv"
 
 	"github.com/itsmecerealdev/itan-go/lib/node"
 	"github.com/itsmecerealdev/itan-go/lib/token"
 	"github.com/itsmecerealdev/itan-go/lib/types"
 )
 
+// Lower number means higher prescedence
+var tokenPrescedence = map[token.TokenType]int {
+	token.Number: 1,
+	token.Identifier: 1,
+	token.Plus: 2,
+	token.Minus: 2,
+	token.Star: 3,
+	token.Slash: 3,
+	token.Exponent: 4,
+	token.LessThan: 5,
+	token.GreaterThan: 5,
+	token.LessEqual: 5,
+	token.GreaterEqual: 5,
+	token.Equal: 6,
+	token.NotEqual: 6,
+	token.Or: 8,
+	token.And: 9,
+	//token.Not: 10
+	//token.LParen: "LParen",
+	//token.RParen: "RParen",
+}
+
+
 type tokenBuffer struct {
-	tokens []token.Token	
+	tokens []token.Token
 	tokenIndex int
 	//eventually, there will be an []error field
 }
@@ -62,11 +85,11 @@ func ParseProgram(tokens []token.Token) node.ProgramNode {
 		if tt == token.LBrace {
 			global.Statements = append(global.Statements, parseScope(&buf))
 		} else if tt == token.Identifier && peekAhead(&buf) == token.LParen {
-			global.Statements = append(global.Statements, parseFuncDecl(&buf))	
+			global.Statements = append(global.Statements, parseFuncDecl(&buf))
 		} else {
 			global.Statements = append(global.Statements, parseStatement(&buf))
 		}
-		tt = peek(&buf)	
+		tt = peek(&buf)
 	}
 	return node.ProgramNode{
 		Scope: global,
@@ -85,7 +108,7 @@ func parseFuncDecl(buf *tokenBuffer) node.FuncDeclNode {
 	if err != nil {
 		log.Fatal(err)
 	}
-	funcNode.Params = parseParams(buf)	
+	funcNode.Params = parseParams(buf)
 	if peek(buf) == token.Return {
 		consume(buf)
 		typeTok, err := expect(buf, token.Identifier)
@@ -167,7 +190,7 @@ func parseStatement(buf *tokenBuffer) node.Node {
 	if tt == token.Identifier && tn == token.Identifier {
 		n = parseDeclaration(buf)
 	} else if tt == token.Identifier && tn == token.LParen {
-		n = parseFuncCall(buf)	
+		n = parseFuncCall(buf)
 	} else if tt == token.Return {
 		n = parseReturn(buf)
 	} else { 
@@ -190,78 +213,6 @@ func parseExprStatement(buf *tokenBuffer) node.Node {
 		expr := parseExpression(buf)
 		return expr
 	}
-}
-
-func parseExpression(buf *tokenBuffer) node.Node {
-	left := parseTerm(buf)	
-	next := peek(buf)	
-	for next == token.Plus || next == token.Minus {
-		oper, _ := consume(buf)	
-		right := parseTerm(buf)
-		temp := node.OperandNode {
-			Left: left,
-			Right: right,
-			Type: oper.Type,
-		}
-		next = peek(buf)
-		left = temp
-	}
-	return left
-}
-
-func parseTerm(buf *tokenBuffer) node.Node {
-	left := parseExponent(buf)
-	next := peek(buf)	
-	for next == token.Star || next == token.Slash {
-		oper, _ := consume(buf)	
-		right := parseFactor(buf)
-		temp := node.OperandNode {
-			Left: left,
-			Right: right,
-			Type: oper.Type,
-		}
-		next = peek(buf)
-		left = temp
-	}
-	return left
-}
-
-func parseExponent(buf *tokenBuffer) node.Node {
-	left := parseFactor(buf)	
-	if peek(buf) == token.Exponent {
-		oper, _ := consume(buf)
-		right := parseExponent(buf)
-		temp := node.OperandNode {
-			Left: left,
-			Right: right,
-			Type: oper.Type,
-		}
-		return temp 
-	}
-	return left
-}
-
-func parseFactor(buf *tokenBuffer) node.Node {
-	if peek(buf) == token.Identifier {
-		tok, _ := consume(buf)
-		return node.VariableNode{
-			Name: tok.Name,
-		}
-	}
-	if peek(buf) == token.Number {
-		n, _ := expect(buf, token.Number)
-		val, err := strconv.ParseInt(n.Name, 10, 64)
-		if err != nil {
-			fmt.Print(err)
-		}
-		return node.NumberNode{
-			Value: val,
-		}
-	}
-	tok, _ := consume(buf)
-	err := fmt.Errorf("reached end of expression parse, unexpected token encountered: " + tok.Type.String() + "\n\tline, col: %d, %d", tok.Line, tok.Col)
-	log.Fatal(err)
-	return node.NumberNode{}
 }
 
 func parseDeclaration(buf *tokenBuffer) node.Node {
@@ -318,7 +269,7 @@ func parseFuncCall(buf *tokenBuffer) node.Node {
 	}
 	consume(buf)
 	for peek(buf) != token.RParen{
-		node.Arguments = append(node.Arguments, parseFactor(buf))
+		node.Arguments = append(node.Arguments, parseExpression(buf))
 		if peek(buf) == token.Comma {
 			consume(buf)
 			continue
@@ -337,4 +288,26 @@ func parseReturn(buf *tokenBuffer) node.ReturnNode {
 		Expression: parseExpression(buf),
 	}
 	return node
+}
+
+func parseExpression(buf *tokenBuffer) node.Node {
+	var curNode node.OperandNode
+	for {
+		next := peek(buf)
+
+		prec, isInPrec := tokenPrescedence[next]
+		if !isInPrec {
+			return curNode
+		}
+		consume(buf)
+		// Traverse down the tree
+		for {
+			nodePrec := tokenPrescedence[curNode.Type]
+			if nodePrec > prec {
+				var newNode node.OperandNode
+
+				curNode = newNode
+			}
+		}
+	}
 }
